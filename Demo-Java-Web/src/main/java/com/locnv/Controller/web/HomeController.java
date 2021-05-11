@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebServlet(name = "HomeWeb", value = {"/trang-chu", "/thoat", "/san-pham","/chi-tiet-san-pham","/tin-tuc","/chi-tiet-tin-tuc","/gio-hang"})
+@WebServlet(name = "HomeWeb", value = {"/trang-chu", "/thoat","/gio-hang"})
 public class HomeController extends HttpServlet {
     @Inject
     private IUserService userService;
@@ -29,10 +29,6 @@ public class HomeController extends HttpServlet {
     private IProductService productService;
     @Inject
     private ISlideService slideService;
-    @Inject
-    private INewCategoryService newCategoryService;
-    @Inject
-    private INewService newService;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -45,7 +41,6 @@ public class HomeController extends HttpServlet {
         request.setAttribute("sales", productService.findTop(4, "SaleDate", "DESC"));
         request.setAttribute("news", productService.findTop(4, "ModifiedDate", "DESC"));
 
-        request.setAttribute("newcategory",newCategoryService.findAll());
         if (req.toString().contains("/thoat")) {
             SessionUtil.getInstance().removeValue(request, "USER");
             response.sendRedirect(request.getContextPath() + "/trang-chu");
@@ -53,46 +48,6 @@ public class HomeController extends HttpServlet {
         }
         if (req.toString().contains("/trang-chu")) {
             getServletContext().getRequestDispatcher("/views/web/home.jsp").forward(request, response);
-        }
-        if (req.toString().contains("/san-pham")) {
-            Long cateid;
-            try{
-                cateid = Long.valueOf(request.getParameter("icate"));
-            }catch (NumberFormatException | NullPointerException e){
-                request.setAttribute("products",productService.findAll());
-                getServletContext().getRequestDispatcher("/views/web/Products.jsp").forward(request, response);
-                return;
-            }
-            request.setAttribute("catename",categoryService.findByID(cateid));
-            request.setAttribute("products",productService.findByCategoryID(cateid));
-            getServletContext().getRequestDispatcher("/views/web/Products.jsp").forward(request, response);
-        }
-        if (req.toString().contains("/chi-tiet-san-pham")){
-            Long productid = Long.valueOf(request.getParameter("pid"));
-            Product single = productService.findByID(productid);
-            request.setAttribute("singleproduct",single);
-            request.setAttribute("related",productService.findByCategoryID(single.getCategoryID()));
-            getServletContext().getRequestDispatcher("/views/web/SingleProduct.jsp").forward(request,response);
-        }
-        if(req.toString().contains("/tin-tuc")){
-            long cateid;
-            request.setAttribute("lastnew",newService.findTop(8,"CreatedDate","DESC"));
-            try{
-                cateid = Long.parseLong(request.getParameter("icate"));
-            }catch (NumberFormatException | NullPointerException e){
-                request.setAttribute("news",newService.findAll());
-                getServletContext().getRequestDispatcher("/views/web/News.jsp").forward(request, response);
-                return;
-            }
-            request.setAttribute("news",newService.fingByCategoryID(cateid));
-            getServletContext().getRequestDispatcher("/views/web/News.jsp").forward(request,response);
-        }
-        if(req.toString().contains("/chi-tiet-tin-tuc")){
-            long id = Long.parseLong(request.getParameter("inew"));
-            New news = newService.findByID(id);
-            news.setListResult(newService.fingByCategoryID(news.getCategoryID()));
-            request.setAttribute("news",news);
-            getServletContext().getRequestDispatcher("/views/web/SingleNew.jsp").forward(request,response);
         }
         if(req.toString().contains("/gio-hang")){
             getServletContext().getRequestDispatcher("/views/web/Cart.jsp").forward(request,response);
